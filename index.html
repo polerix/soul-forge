@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Soul Forge</title>
+  
+  <!-- Use ESM versions of React -->
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client"
+      }
+    }
+  </script>
+  
+  <!-- Babel standalone -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0a0906; /* Matches --ink from CSS */
+      color: #e8dcc8; /* Matches --text from CSS */
+    }
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Cinzel', serif, Georgia, 'Times New Roman', Times, serif;
+      font-size: 20px;
+      color: #c8972a;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div id="loading">Igniting the forge...</div>
+  </div>
+  
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+
+    // Polyfill for window.storage used in soul-forge.jsx
+    if (!window.storage) {
+      window.storage = {
+        async get(key) {
+          const val = localStorage.getItem(key);
+          return val ? { value: val } : null;
+        },
+        async set(key, value) {
+          localStorage.setItem(key, value);
+        }
+      };
+    }
+
+    async function loadApp() {
+      try {
+        // Fetch the JSX file
+        const res = await fetch('./soul-forge.jsx');
+        if (!res.ok) throw new Error('Failed to fetch soul-forge.jsx: ' + res.statusText);
+        
+        const jsxCode = await res.text();
+        
+        // Transform JSX and ES6 module syntax
+        // No 'env' preset to preserve native ES modules
+        const transformed = Babel.transform(jsxCode, {
+          presets: [
+            ['react', { runtime: 'automatic' }]
+          ]
+        }).code;
+        
+        // Create a blob URL for the transformed module
+        const blob = new Blob([transformed], { type: 'application/javascript' });
+        const moduleUrl = URL.createObjectURL(blob);
+        
+        // Dynamically import the module
+        const { default: SoulForge } = await import(moduleUrl);
+        
+        // Render the app
+        const root = createRoot(document.getElementById('root'));
+        root.render(React.createElement(SoulForge));
+        
+        // Clean up the URL
+        URL.revokeObjectURL(moduleUrl);
+      } catch (err) {
+        console.error(err);
+        document.getElementById('root').innerHTML = `<div style="padding: 20px; color: #c0392b; font-family: monospace;">Error igniting the forge: ${err.message}</div>`;
+      }
+    }
+    
+    loadApp();
+  </script>
+</body>
+</html>
