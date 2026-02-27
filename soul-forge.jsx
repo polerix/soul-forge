@@ -85,7 +85,7 @@ async function generateSoul(character, onChunk) {
             full += json.delta.text;
             onChunk(full);
           }
-        } catch {}
+        } catch { }
       }
     }
   }
@@ -317,28 +317,65 @@ const css = `
     font-style: italic;
     color: var(--mist);
     font-size: 14px;
-    margin-bottom: 24px;
   }
-  .notify-form {
+
+  /* ── Progress Bar ── */
+  .progress-wrap {
+    margin-bottom: 20px;
+  }
+  .progress-header {
     display: flex;
-    gap: 10px;
-    max-width: 400px;
-    margin: 0 auto;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
   }
-  .notify-input {
-    flex: 1;
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+  .progress-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--mist);
+  }
+  .progress-track {
+    height: 4px;
     background: var(--surface3);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px 14px;
-    font-family: 'Cinzel', serif;
-    font-size: 13px;
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.2s;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
   }
-  .notify-input:focus { border-color: var(--gold); }
-  .notify-input::placeholder { color: var(--mist); }
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--gold), var(--gold-light));
+    transition: width 0.4s ease;
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 40px; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.3));
+    animation: shimmer 1.2s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .progress-status {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--mist);
+    margin-top: 6px;
+  }
+
   .btn {
     font-family: 'Cinzel', serif;
     font-size: 12px;
@@ -479,31 +516,6 @@ const css = `
     justify-content: flex-end;
   }
 
-  /* ── Notification Queue ── */
-  .queue-section { margin-top: 48px; }
-  .queue-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--mist);
-  }
-  .queue-item:last-child { border-bottom: none; }
-  .queue-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--ember);
-    animation: pulse 2s ease infinite;
-    flex-shrink: 0;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
   /* ── Toast ── */
   .toast {
     position: fixed;
@@ -563,13 +575,13 @@ function renderSoulMd(text) {
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 
+// Estimated total chars for a full SOUL.md (used for progress)
+const ESTIMATED_CHARS = 2200;
+
 export default function SoulForge() {
   const [query, setQuery] = useState("");
   const [souls, setSouls] = useState({});
-  const [notifyQueue, setNotifyQueue] = useState([]);
   const [modal, setModal] = useState(null); // { character, state: 'idle'|'generating'|'done', content }
-  const [notifyEmail, setNotifyEmail] = useState("");
-  const [notifyChar, setNotifyChar] = useState("");
   const [toast, setToast] = useState(null);
   const streamRef = useRef("");
   const [streamContent, setStreamContent] = useState("");
@@ -580,22 +592,13 @@ export default function SoulForge() {
       try {
         const s = await window.storage.get("souls-registry");
         if (s) setSouls(JSON.parse(s.value));
-      } catch {}
-      try {
-        const q = await window.storage.get("notify-queue");
-        if (q) setNotifyQueue(JSON.parse(q.value));
-      } catch {}
+      } catch { }
     })();
   }, []);
 
   const saveSouls = async (updated) => {
     setSouls(updated);
-    try { await window.storage.set("souls-registry", JSON.stringify(updated)); } catch {}
-  };
-
-  const saveQueue = async (updated) => {
-    setNotifyQueue(updated);
-    try { await window.storage.set("notify-queue", JSON.stringify(updated)); } catch {}
+    try { await window.storage.set("souls-registry", JSON.stringify(updated)); } catch { }
   };
 
   const showToast = (msg) => {
@@ -606,10 +609,10 @@ export default function SoulForge() {
   // Filter characters
   const filtered = query.length > 1
     ? SEED_CHARACTERS.filter(c =>
-        c.name.toLowerCase().includes(query.toLowerCase()) ||
-        c.author.toLowerCase().includes(query.toLowerCase()) ||
-        c.genre.toLowerCase().includes(query.toLowerCase())
-      )
+      c.name.toLowerCase().includes(query.toLowerCase()) ||
+      c.author.toLowerCase().includes(query.toLowerCase()) ||
+      c.genre.toLowerCase().includes(query.toLowerCase())
+    )
     : SEED_CHARACTERS;
 
   const hasMatch = filtered.length > 0;
@@ -650,15 +653,7 @@ export default function SoulForge() {
     URL.revokeObjectURL(url);
   };
 
-  const submitNotify = () => {
-    if (!notifyEmail || !notifyChar) return;
-    const entry = { email: notifyEmail, character: notifyChar, ts: Date.now() };
-    const updated = [...notifyQueue, entry];
-    saveQueue(updated);
-    setNotifyEmail("");
-    setNotifyChar("");
-    showToast("You will be notified when this soul is forged");
-  };
+
 
   return (
     <>
@@ -722,41 +717,7 @@ export default function SoulForge() {
             {query.length > 1 && !hasMatch && (
               <div className="not-found">
                 <div className="not-found-title">"{query}" has not yet been catalogued</div>
-                <div className="not-found-sub">This soul may yet be forged. Leave your email and we'll notify you.</div>
-                <div className="notify-form">
-                  <input
-                    className="notify-input"
-                    placeholder="your@email.com"
-                    value={notifyEmail}
-                    onChange={e => setNotifyEmail(e.target.value)}
-                  />
-                  <button className="btn" onClick={() => { setNotifyChar(query); submitNotify(); }}>
-                    Notify Me
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Notification queue */}
-            {notifyQueue.length > 0 && (
-              <div className="queue-section">
-                <div className="section-label">Pending Summons</div>
-                <div style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "6px", overflow: "hidden" }}>
-                  {notifyQueue.map((item, i) => (
-                    <div key={i} className="queue-item">
-                      <div className="queue-dot" />
-                      <span style={{ color: "var(--text)" }}>{item.character}</span>
-                      <span style={{ marginLeft: "auto" }}>→ {item.email}</span>
-                      <button
-                        className="btn btn-ghost"
-                        style={{ padding: "4px 10px", fontSize: "10px" }}
-                        onClick={() => saveQueue(notifyQueue.filter((_, j) => j !== i))}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                <div className="not-found-sub">This soul has not yet been added to the archive.</div>
               </div>
             )}
           </main>
@@ -797,19 +758,34 @@ export default function SoulForge() {
                   </>
                 )}
 
-                {modal.state === "generating" && (
-                  <>
-                    {streamContent ? (
-                      <div className="soul-preview">{renderSoulMd(streamContent)}</div>
-                    ) : (
-                      <div className="generating-state">
-                        <div className="flame">🔥</div>
-                        <div className="generating-text">Summoning {modal.character.name}…</div>
-                        <div className="generating-sub">The forge burns. The soul takes form.</div>
+                {modal.state === "generating" && (() => {
+                  const pct = Math.min(100, Math.round((streamContent.length / ESTIMATED_CHARS) * 100));
+                  const phases = [
+                    "The forge ignites…",
+                    "The soul stirs in the embers…",
+                    "Personality crystallising…",
+                    "Voice and values taking form…",
+                    "Almost forged…",
+                  ];
+                  const phase = phases[Math.min(Math.floor(pct / 20), phases.length - 1)];
+                  return (
+                    <>
+                      <div className="progress-wrap">
+                        <div className="progress-header">
+                          <span className="progress-label">Forging Soul</span>
+                          <span className="progress-pct">{pct}%</span>
+                        </div>
+                        <div className="progress-track">
+                          <div className="progress-fill" style={{ width: `${Math.max(4, pct)}%` }} />
+                        </div>
+                        <div className="progress-status">{phase}</div>
                       </div>
-                    )}
-                  </>
-                )}
+                      {streamContent && (
+                        <div className="soul-preview">{renderSoulMd(streamContent)}</div>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {modal.state === "done" && (
                   <>
