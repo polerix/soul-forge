@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 
+// ─── Config ────────────────────────────────────────────────────────────────────
+// Fill these in after deploying the Apps Script (see wellofsparks/setup.md)
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHhJjwZAWJIanx7X78IOEMVCaGcNNqyuM5mtqYrnO4AaosgiXYsJgScD1wSnWPeo3O2Q/exec";
+const MANIFEST_URL = "https://raw.githubusercontent.com/polerix/soul-forge/main/wellofsparks/sparks-manifest.json";
+
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const SEED_CHARACTERS = [
@@ -297,12 +302,12 @@ const css = `
     border: 1px solid rgba(230,126,34,0.2);
   }
 
-  /* ── Not Found ── */
+  /* ── Not Found + Request Form ── */
   .not-found {
     background: var(--surface2);
     border: 1px dashed var(--border-bright);
     border-radius: 6px;
-    padding: 40px;
+    padding: 32px 40px;
     text-align: center;
     margin-bottom: 32px;
   }
@@ -317,6 +322,35 @@ const css = `
     font-style: italic;
     color: var(--mist);
     font-size: 14px;
+    margin-bottom: 20px;
+  }
+  .request-form {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .request-input {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    background: var(--surface3);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    padding: 10px 14px;
+    color: var(--text);
+    outline: none;
+    width: 220px;
+    transition: border-color 0.2s;
+  }
+  .request-input:focus { border-color: var(--gold); }
+  .request-input::placeholder { color: var(--mist); font-style: italic; }
+  .request-sent {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #27ae60;
+    margin-top: 12px;
+    letter-spacing: 0.05em;
   }
 
   /* ── Progress Bar ── */
@@ -516,6 +550,121 @@ const css = `
     justify-content: flex-end;
   }
 
+  /* ── Community Spark Cards ── */
+  .community-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    text-decoration: none;
+    display: block;
+    transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .community-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #27ae60, transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .community-card:hover {
+    border-color: rgba(39,174,96,0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .community-card:hover::before { opacity: 1; }
+  .community-dl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: #27ae60;
+    margin-top: 10px;
+    opacity: 0.7;
+  }
+
+  /* ── Spark Link ── */
+  .spark-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--mist);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 4px 0;
+  }
+  .char-card-wrap:hover .spark-link { opacity: 1; }
+  .spark-link:hover { color: var(--gold); }
+  .spark-link.spark-partial { color: #e67e22; }
+  .spark-link.spark-complete { color: #27ae60; }
+  .spark-link.spark-complete:hover { color: #2ecc71; }
+  .char-card-wrap { display: flex; flex-direction: column; }
+
+  /* ── Avatar Panel ── */
+  .avatar-panel {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .avatar-img {
+    width: 72px; height: 72px;
+    border-radius: 4px;
+    border: 1px solid var(--border-bright);
+    flex-shrink: 0;
+  }
+  .avatar-placeholder {
+    width: 72px; height: 72px;
+    border-radius: 4px;
+    border: 1px dashed var(--border-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    background: var(--surface3);
+    opacity: 0.6;
+  }
+  .avatar-info { flex: 1; min-width: 0; }
+  .avatar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .spark-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .spark-check {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .spark-check.done { color: #27ae60; }
+  .spark-check.pending { color: var(--mist); opacity: 0.6; }
+
   /* ── Toast ── */
   .toast {
     position: fixed;
@@ -573,6 +722,63 @@ function renderSoulMd(text) {
   return <>{lines}</>;
 }
 
+// ─── Avatar Generator ─────────────────────────────────────────────────────────
+
+function buildAvatarSvg(character) {
+  const color = {
+    Mystery: "#c8a97e", Horror: "#c0392b", Tragedy: "#8e44ad",
+    Satire: "#e67e22", Romance: "#e91e8c", Adventure: "#27ae60",
+    Philosophical: "#2980b9", Fantasy: "#16a085", Epic: "#f39c12",
+    Psychological: "#6c3483", Comedy: "#f1c40f", Drama: "#d35400",
+  }[character.genre] || "#c8972a";
+
+  // Derive initials (up to 2)
+  const words = character.name.replace(/[^a-zA-Z ]/g, "").trim().split(" ").filter(Boolean);
+  const initials = words.length >= 2
+    ? words[0][0].toUpperCase() + words[words.length - 1][0].toUpperCase()
+    : words[0]?.slice(0, 2).toUpperCase() || "?";
+
+  // Seeded visual hash from id
+  let hash = 0;
+  for (const c of character.id) hash = (hash * 31 + c.charCodeAt(0)) & 0xffffffff;
+  const hue = ((Math.abs(hash) % 360));
+  const bgDark = `hsl(${hue},18%,7%)`;
+  const bgMid = `hsl(${hue},22%,11%)`;
+  const rings = 3 + (Math.abs(hash >> 4) % 3);
+  const ringLines = Array.from({ length: rings }, (_, i) => {
+    const r = 42 - i * 9;
+    const dash = 4 + i * 3;
+    return `<circle cx="64" cy="64" r="${r}" fill="none" stroke="${color}" stroke-width="0.6" stroke-dasharray="${dash} ${dash + 4}" opacity="${0.18 - i * 0.04}"/>`;
+  }).join("");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="${bgMid}"/>
+      <stop offset="100%" stop-color="${bgDark}"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="${color}" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" fill="url(#bg)" rx="4"/>
+  <circle cx="64" cy="64" r="62" fill="url(#glow)"/>
+  ${ringLines}
+  <circle cx="64" cy="64" r="34" fill="none" stroke="${color}" stroke-width="1.2" opacity="0.35"/>
+  <line x1="64" y1="2" x2="64" y2="20" stroke="${color}" stroke-width="0.8" opacity="0.25"/>
+  <line x1="64" y1="108" x2="64" y2="126" stroke="${color}" stroke-width="0.8" opacity="0.25"/>
+  <line x1="2" y1="64" x2="20" y2="64" stroke="${color}" stroke-width="0.8" opacity="0.25"/>
+  <line x1="108" y1="64" x2="126" y2="64" stroke="${color}" stroke-width="0.8" opacity="0.25"/>
+  <text x="64" y="70" font-family="Georgia, serif" font-size="22" font-weight="700"
+        fill="${color}" text-anchor="middle" dominant-baseline="middle"
+        opacity="0.92">${initials}</text>
+  <text x="64" y="90" font-family="monospace" font-size="5.5" fill="${color}"
+        text-anchor="middle" opacity="0.45" letter-spacing="2">${character.genre.toUpperCase()}</text>
+  <rect x="1" y="1" width="126" height="126" fill="none" stroke="${color}" stroke-width="0.6" rx="3" opacity="0.2"/>
+</svg>`;
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 // Estimated total chars for a full SOUL.md (used for progress)
@@ -581,10 +787,15 @@ const ESTIMATED_CHARS = 2200;
 export default function SoulForge() {
   const [query, setQuery] = useState("");
   const [souls, setSouls] = useState({});
+  const [avatars, setAvatars] = useState({});   // { [charId]: dataURL }
+  const [sparks, setSparks] = useState({});     // { [charId]: { soulAt, avatarAt, packagedAt } }
   const [modal, setModal] = useState(null); // { character, state: 'idle'|'generating'|'done', content }
   const [toast, setToast] = useState(null);
   const streamRef = useRef("");
   const [streamContent, setStreamContent] = useState("");
+  const [communitySparks, setCommunitySparks] = useState([]);  // from sparks-manifest.json
+  const [requestState, setRequestState] = useState("idle"); // 'idle'|'sending'|'sent'|'error'
+  const [requestAuthor, setRequestAuthor] = useState("");
 
   // Load from storage
   useEffect(() => {
@@ -592,8 +803,21 @@ export default function SoulForge() {
       try {
         const s = await window.storage.get("souls-registry");
         if (s) setSouls(JSON.parse(s.value));
+        const av = await window.storage.get("avatars-registry");
+        if (av) setAvatars(JSON.parse(av.value));
+        const sp = await window.storage.get("sparks-registry");
+        if (sp) setSparks(JSON.parse(sp.value));
       } catch { }
     })();
+  }, []);
+
+  // Fetch community sparks manifest
+  useEffect(() => {
+    if (!MANIFEST_URL) return;
+    fetch(MANIFEST_URL)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => Array.isArray(data) ? setCommunitySparks(data) : null)
+      .catch(() => { });
   }, []);
 
   const saveSouls = async (updated) => {
@@ -601,9 +825,34 @@ export default function SoulForge() {
     try { await window.storage.set("souls-registry", JSON.stringify(updated)); } catch { }
   };
 
+  const saveAvatars = async (updated) => {
+    setAvatars(updated);
+    try { await window.storage.set("avatars-registry", JSON.stringify(updated)); } catch { }
+  };
+
+  const saveSparks = async (updated) => {
+    setSparks(updated);
+    try { await window.storage.set("sparks-registry", JSON.stringify(updated)); } catch { }
+  };
+
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const submitRequest = async (name, author) => {
+    if (!APPS_SCRIPT_URL) { showToast("Request queue not configured yet."); return; }
+    setRequestState("sending");
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ name: name.trim(), query: name.trim(), author: author.trim() }),
+      });
+      setRequestState("sent");
+    } catch {
+      setRequestState("error");
+      setTimeout(() => setRequestState("idle"), 3000);
+    }
   };
 
   // Filter characters
@@ -635,6 +884,12 @@ export default function SoulForge() {
       });
       const updated = { ...souls, [char.id]: content };
       await saveSouls(updated);
+      // Record soulAt timestamp
+      const updatedSp = {
+        ...sparks,
+        [char.id]: { ...sparks[char.id], soulAt: new Date().toISOString() }
+      };
+      await saveSparks(updatedSp);
       setModal(m => ({ ...m, state: "done", content }));
       showToast(`${char.name}'s soul has been forged`);
     } catch (err) {
@@ -653,6 +908,89 @@ export default function SoulForge() {
     URL.revokeObjectURL(url);
   };
 
+  // ── Spark status helper ──────────────────────────────────────────────────────
+  // Returns: 'empty' | 'partial' | 'complete'
+  const sparkStatus = (charId) => {
+    const hasSoul = !!souls[charId];
+    const hasAvatar = !!avatars[charId];
+    if (!hasSoul && !hasAvatar) return "empty";
+    if (hasSoul && hasAvatar) return "complete";
+    return "partial";
+  };
+
+  // ── Generate procedural avatar ───────────────────────────────────────────────
+  const forgeAvatar = async (character) => {
+    const svgStr = buildAvatarSvg(character);
+    const dataUrl = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgStr)));
+    const updatedAv = { ...avatars, [character.id]: dataUrl };
+    await saveAvatars(updatedAv);
+    // Mark avatar timestamp in sparks registry
+    const updatedSp = {
+      ...sparks,
+      [character.id]: { ...sparks[character.id], avatarAt: new Date().toISOString() }
+    };
+    await saveSparks(updatedSp);
+    showToast(`${character.name}'s avatar forged`);
+    return dataUrl;
+  };
+
+  // ── Download .spark.zip ──────────────────────────────────────────────────────
+  const downloadSpark = async (character, e) => {
+    e.stopPropagation();
+    if (!window.JSZip) { showToast("JSZip not loaded yet."); return; }
+    const hasSoul = !!souls[character.id];
+    const hasAvatar = !!avatars[character.id];
+    if (!hasSoul && !hasAvatar) {
+      showToast(`Forge ${character.name}'s soul first.`);
+      return;
+    }
+    const JSZip = window.JSZip;
+    const zip = new JSZip();
+    const packagedAt = new Date().toISOString();
+
+    // SOUL.md — only if generated
+    if (hasSoul) zip.file("SOUL.md", souls[character.id]);
+
+    // avatar.svg (if generated)
+    if (hasAvatar) {
+      const svgStr = buildAvatarSvg(character);
+      zip.file("avatar.svg", svgStr);
+    }
+
+    // spark.json — accurate completeness
+    zip.file("spark.json", JSON.stringify({
+      name: character.name,
+      id: character.id,
+      author: character.author,
+      year: character.year,
+      genre: character.genre,
+      era: character.era,
+      complete: hasSoul && hasAvatar,
+      contents: {
+        "SOUL.md": { present: hasSoul, generatedAt: sparks[character.id]?.soulAt || null },
+        "avatar.svg": { present: hasAvatar, generatedAt: sparks[character.id]?.avatarAt || null },
+      },
+      packagedAt,
+      source: "https://soul-forge.openClaw.dev",
+      format: "SOUL.md v1",
+    }, null, 2));
+
+    const blob = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${character.id}.spark.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Mark packagedAt in sparks registry
+    const updatedSp = {
+      ...sparks,
+      [character.id]: { ...sparks[character.id], packagedAt }
+    };
+    await saveSparks(updatedSp);
+    showToast(`${character.id}.spark.zip downloaded`);
+  };
 
 
   return (
@@ -691,21 +1029,29 @@ export default function SoulForge() {
                   {filtered.map(char => {
                     const isReady = !!souls[char.id];
                     const color = GENRE_COLORS[char.genre] || "#c8972a";
+                    const status = sparkStatus(char.id);
+                    const sparkLabel = status === "complete" ? "✦" : status === "partial" ? "◑" : "○";
+                    const sparkClass = status === "complete" ? "spark-complete" : status === "partial" ? "spark-partial" : "";
                     return (
-                      <div
-                        key={char.id}
-                        className={`char-card${isReady ? " generated" : ""}`}
-                        style={{ "--genre-color": color }}
-                        onClick={() => openModal(char)}
-                      >
-                        <div className="char-name">{char.name}</div>
-                        <div className="char-meta">{char.author} · {char.year > 0 ? char.year : Math.abs(char.year) + " BCE"}</div>
-                        <div className="char-badges">
-                          <span className="badge badge-genre" style={{ color, borderColor: color + "33", background: color + "11" }}>{char.genre}</span>
-                          <span className={`badge ${isReady ? "badge-ready" : "badge-pending"}`}>
-                            {isReady ? "✦ Ready" : "⊹ Forge"}
-                          </span>
+                      <div key={char.id} className="char-card-wrap">
+                        <div
+                          className={`char-card${isReady ? " generated" : ""}`}
+                          style={{ "--genre-color": color }}
+                          onClick={() => openModal(char)}
+                        >
+                          <div className="char-name">{char.name}</div>
+                          <div className="char-meta">{char.author} · {char.year > 0 ? char.year : Math.abs(char.year) + " BCE"}</div>
+                          <div className="char-badges">
+                            <span className="badge badge-genre" style={{ color, borderColor: color + "33", background: color + "11" }}>{char.genre}</span>
+                            <span className={`badge ${isReady ? "badge-ready" : "badge-pending"}`}>
+                              {isReady ? "✦ Ready" : "⊹ Forge"}
+                            </span>
+                          </div>
                         </div>
+                        <span className={`spark-link ${sparkClass}`} onClick={(e) => downloadSpark(char, e)}>
+                          <span>{sparkLabel}</span>
+                          <span>{char.id}.spark.zip</span>
+                        </span>
                       </div>
                     );
                   })}
@@ -713,14 +1059,68 @@ export default function SoulForge() {
               </>
             ) : null}
 
-            {/* Not found */}
+            {/* Not found + request form */}
             {query.length > 1 && !hasMatch && (
               <div className="not-found">
                 <div className="not-found-title">"{query}" has not yet been catalogued</div>
-                <div className="not-found-sub">This soul has not yet been added to the archive.</div>
+                <div className="not-found-sub">Request it and we'll forge the spark overnight.</div>
+                {requestState === "sent" ? (
+                  <div className="request-sent">✓ Request received — check back soon</div>
+                ) : (
+                  <div className="request-form">
+                    <input
+                      className="request-input"
+                      placeholder="Author (optional)"
+                      value={requestAuthor}
+                      onChange={e => setRequestAuthor(e.target.value)}
+                    />
+                    <button
+                      className="btn"
+                      disabled={requestState === "sending"}
+                      onClick={() => submitRequest(query, requestAuthor)}
+                    >
+                      {requestState === "sending" ? "Sending…" :
+                        requestState === "error" ? "Failed — retry" :
+                          "⚗ Request This Soul"}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </main>
+
+          {/* Community Sparks */}
+          {communitySparks.length > 0 && (
+            <main className="main" style={{ paddingTop: 0 }}>
+              <div className="section-label">Community Sparks</div>
+              <div className="grid">
+                {communitySparks
+                  .filter(s => !query || s.name.toLowerCase().includes(query.toLowerCase()))
+                  .map(spark => {
+                    const color = GENRE_COLORS[spark.genre] || "#27ae60";
+                    return (
+                      <a
+                        key={spark.id}
+                        className="community-card"
+                        href={spark.shareableLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ "--genre-color": color }}
+                      >
+                        <div className="char-name">{spark.name}</div>
+                        <div className="char-meta">{spark.author}{spark.year ? ` · ${spark.year < 0 ? Math.abs(spark.year) + " BCE" : spark.year}` : ""}</div>
+                        <div className="char-badges">
+                          <span className="badge badge-genre" style={{ color, borderColor: color + "33", background: color + "11" }}>{spark.genre}</span>
+                          <span className="badge badge-ready">✦ Complete</span>
+                        </div>
+                        <div className="community-dl">⬇ {spark.id}.spark.zip</div>
+                      </a>
+                    );
+                  })
+                }
+              </div>
+            </main>
+          )}
 
           <footer className="footer">
             All characters are in the public domain · SOUL.md format by OpenClaw · Powered by Claude
@@ -787,17 +1187,53 @@ export default function SoulForge() {
                   );
                 })()}
 
-                {modal.state === "done" && (
-                  <>
-                    <div className="soul-preview">{renderSoulMd(streamContent || modal.content)}</div>
-                    <div className="modal-actions">
-                      <button className="btn btn-ghost" onClick={() => setModal(null)}>Close</button>
-                      <button className="btn btn-success" onClick={() => downloadSoul(modal.character, modal.content || streamContent)}>
-                        ↓ Download SOUL.md
-                      </button>
-                    </div>
-                  </>
-                )}
+                {modal.state === "done" && (() => {
+                  const char = modal.character;
+                  const hasAvatar = !!avatars[char.id];
+                  const sp = sparks[char.id] || {};
+                  const isComplete = !!souls[char.id] && hasAvatar;
+                  return (
+                    <>
+                      {/* Spark status panel */}
+                      <div className="avatar-panel">
+                        {hasAvatar
+                          ? <img className="avatar-img" src={avatars[char.id]} alt={char.name} />
+                          : <div className="avatar-placeholder">🜂</div>
+                        }
+                        <div className="avatar-info">
+                          <div className="avatar-label">Spark Package</div>
+                          <div className="spark-checklist">
+                            <div className={`spark-check ${souls[char.id] ? "done" : "pending"}`}>
+                              {souls[char.id] ? "✓" : "○"} SOUL.md {sp.soulAt ? <span style={{ opacity: 0.5, fontSize: "9px" }}> — {sp.soulAt.slice(0, 10)}</span> : ""}
+                            </div>
+                            <div className={`spark-check ${hasAvatar ? "done" : "pending"}`}>
+                              {hasAvatar ? "✓" : "○"} avatar.svg {sp.avatarAt ? <span style={{ opacity: 0.5, fontSize: "9px" }}> — {sp.avatarAt.slice(0, 10)}</span> : ""}
+                            </div>
+                            <div className={`spark-check ${isComplete ? "done" : "pending"}`}>
+                              {isComplete ? "✓" : "○"} spark.json {sp.packagedAt ? <span style={{ opacity: 0.5, fontSize: "9px" }}> — last packaged {sp.packagedAt.slice(0, 10)}</span> : <span style={{ opacity: 0.5, fontSize: "9px" }}> — not yet packaged</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="soul-preview">{renderSoulMd(streamContent || modal.content)}</div>
+                      <div className="modal-actions">
+                        <button className="btn btn-ghost" onClick={() => setModal(null)}>Close</button>
+                        {!hasAvatar && (
+                          <button className="btn btn-ghost" onClick={() => forgeAvatar(char)}>
+                            ⚙ Forge Avatar
+                          </button>
+                        )}
+                        <button className="btn" onClick={() => downloadSpark(char, { stopPropagation: () => { } })}>
+                          ⬇ {isComplete ? "✦ Complete" : "◑ Partial"} .spark.zip
+                        </button>
+                        <button className="btn btn-success" onClick={() => downloadSoul(modal.character, modal.content || streamContent)}>
+                          ↓ Download SOUL.md
+                        </button>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
