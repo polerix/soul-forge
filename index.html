@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Soul Forge</title>
+  <title>Soul Forge: The Aqua Protocol</title>
   
   <!-- Use ESM versions of React -->
   <script type="importmap">
@@ -22,11 +22,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   
   <style>
+    :root {
+      --aqua-bg: #001a33;
+      --aqua-gradient: linear-gradient(180deg, #003366 0%, #001a33 100%);
+      --aqua-text: #e0f2f1;
+      --aqua-gold: #c8972a;
+    }
     body {
       margin: 0;
       padding: 0;
-      background: #0a0906; /* Matches --ink from CSS */
-      color: #e8dcc8; /* Matches --text from CSS */
+      background: var(--aqua-bg);
+      background: var(--aqua-gradient);
+      color: var(--aqua-text);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     #loading {
       display: flex;
@@ -34,22 +43,35 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      font-family: 'Cinzel', serif, Georgia, 'Times New Roman', Times, serif;
       font-size: 20px;
-      color: #c8972a;
+      color: var(--aqua-gold);
+      text-shadow: 0 0 10px rgba(200,151,42,0.5);
+    }
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      pointer-events: none;
+    }
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
     }
   </style>
 </head>
 <body>
   <div id="root">
-    <div id="loading">Igniting the forge...</div>
+    <div id="loading">🌊 Hydrating the Aqua Protocol...</div>
   </div>
   
   <script type="module">
     import React from 'react';
     import { createRoot } from 'react-dom/client';
 
-    // Polyfill for window.storage used in soul-forge.jsx
     if (!window.storage) {
       window.storage = {
         async get(key) {
@@ -64,39 +86,23 @@
 
     async function loadApp() {
       try {
-        // Fetch the JSX file
         const res = await fetch('./soul-forge.jsx');
-        if (!res.ok) throw new Error('Failed to fetch soul-forge.jsx: ' + res.statusText);
-        
+        if (!res.ok) throw new Error('Failed to fetch soul-forge.jsx');
         const jsxCode = await res.text();
-        
-        // Transform JSX and ES6 module syntax
-        // No 'env' preset to preserve native ES modules
         const transformed = Babel.transform(jsxCode, {
-          presets: [
-            ['react', { runtime: 'automatic' }]
-          ]
+          presets: [['react', { runtime: 'automatic' }]]
         }).code;
-        
-        // Create a blob URL for the transformed module
         const blob = new Blob([transformed], { type: 'application/javascript' });
         const moduleUrl = URL.createObjectURL(blob);
-        
-        // Dynamically import the module
         const { default: SoulForge } = await import(moduleUrl);
-        
-        // Render the app
         const root = createRoot(document.getElementById('root'));
         root.render(React.createElement(SoulForge));
-        
-        // Clean up the URL
         URL.revokeObjectURL(moduleUrl);
       } catch (err) {
         console.error(err);
-        document.getElementById('root').innerHTML = `<div style="padding: 20px; color: #c0392b; font-family: monospace;">Error igniting the forge: ${err.message}</div>`;
+        document.getElementById('root').innerHTML = `<div style="padding: 20px; color: #ff6b6b;">Error: ${err.message}</div>`;
       }
     }
-    
     loadApp();
   </script>
 </body>
