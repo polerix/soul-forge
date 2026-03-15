@@ -1,37 +1,38 @@
-# 🕯️ Soul Forge: The Tripartite Agent Architecture
+# 🌊 Soul Forge: The Aqua Protocol
 
-Soul Forge is a framework for creating specialized, persistent, and mission-driven AI agents. It breaks the AI experience into three distinct, interoperable layers: **Souls**, **Sleeves**, and **Jobs**.
-
-## 1. 🌑 Souls (Identity & Persona)
-The "Soul" is the agent's core way of thinking. It's the unique combination of personality traits, worldviews, and linguistic quirks that make an agent feel unique.
-*   **Purpose:** To provide a consistent, recognizable character for the AI.
-*   **Storage:** Typically stored in `souls/` or as a set of system-level instructions.
-
-## 2. 📁 Sleeves (Memory & State)
-The "Sleeve" is the agent's memory. Based on the **Pinocchio Protocol**, it uses a tiered system to store everything from immediate goals to long-term historical facts.
-*   **Purpose:** To eliminate "LLM amnesia" and allow the agent to learn from its environment over time.
-*   **Structure:**
-    *   **Context (MD):** Immediate focus and recent session history.
-    *   **Long-Term (MD):** Curated, verified facts and patterns.
-    *   **Vault (JSON):** Machine-indexed subconscious for high-density, low-latency data.
-*   **Oversight:** "Ghost Git" versioning and "Dreaming" compaction.
-
-## 💼 3. Jobs (Roles & Deliverables)
-The "Job" is the agent's professional specialization. Inspired by the `msitarzewski/agency-agents` ecosystem, it defines a role with specific workflows and proven deliverables.
-*   **Purpose:** To compartmentalize tasks into professional-grade expert roles.
-*   **Structure:**
-    *   **Identity & Mission:** What is the job's focus?
-    *   **Workflows:** Step-by-step processes for task completion.
-    *   **Deliverables:** Tangible, technical output formats.
+The Soul Forge is a **fluid, LLM-agnostic framework** for creating specialized, persistent, and mission-driven AI agents. It breaks the AI experience into three distinct, interoperable layers: **Souls**, **Sleeves**, and **Jobs**.
 
 ---
 
-## 🛠️ Implementation: The Pinocchio Protocol
+## 🌓 The Tripartite Architecture
 
-The Soul Forge is operationalized through the **Pinocchio Protocol** on this machine. It ensures that every session:
-1.  **Loads the Sleeve** to gain context.
-2.  **Activates a Soul** to align with the desired persona.
-3.  **Applies a Job** to handle the specific professional requirements of the task.
-4.  **Dreams at the end** to compact new insights back into the sleeve.
+### 1. 🌑 Souls (Fluid Identity)
+The **Soul** is the agent's core identity. It's the prompt-based persona that dictates *how* the agent thinks and communicates.
+*   **Agnosticism:** Any LLM (Gemini, Claude, Aider) can load a `soul.md` and adopt its "flavor."
+*   **Purpose:** Provides a consistent, recognizable character.
+*   **State:** Evolves through "Instinct Extraction" (learning from past sessions).
 
-*Specialization without bloat. Growth without loss of self.*
+### 2. 📁 Sleeves (Deep Memory)
+The **Sleeve** is the "Body" of memory. It's the physical storage of experience that persists across sessions.
+*   **Agnosticism:** Uses universal formats (Markdown/JSON) that any tool can read and write. If Claude writes a fact to the Sleeve, Gemini can read it next time.
+*   **Structure:**
+    *   **Context (MD):** The "Working Memory" for immediate focus.
+    *   **Long-Term (MD):** The "Common Sense" of curated, verified facts.
+    *   **Vault (JSON):** The "Subconscious" machine-indexed database.
+
+### 💼 3. Jobs (The Currents of Action)
+The **Job** is the agent's professional specialization. It defines the workflows and proven deliverables for a specific role.
+*   **Agnosticism:** Jobs are professional instructions that tell the agent *what* to do, regardless of its underlying model.
+*   **Purpose:** To compartmentalize tasks into professional-grade expert roles.
+
+---
+
+## 🛠️ Implementation: The Aqua Protocol
+
+The Soul Forge is operationalized through the **Aqua Protocol** (formerly the Pinocchio Protocol) on this machine. It ensures a "Liquid Growth" cycle for the agent:
+1.  **Hydrate:** Load the Sleeve context, the active Soul, and the required Job.
+2.  **Flow:** Execute the task with professional precision and specialized personality.
+3.  **Reflect:** Audit and promote new insights via `REVERSE_REFLECT.md`.
+4.  **Dream:** Perform deep compaction into the `VAULT.json` subconscious at the end of every session.
+
+*Be like water. Formless, shapeless, but unstoppable.*
