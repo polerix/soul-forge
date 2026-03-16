@@ -4,7 +4,12 @@ This file is a collection of experimental branches, "spice of life" ideas, and c
 
 ## 🧬 Research Intersections
 
-### 1. The Voight-Kampff Empathy Branch
+### 1. The Sensorium Protocol (Hardware & Environmental Embodiment)
+- **Concept:** Expand the "Sleeve" beyond the terminal to inhabit the physical environment of the MacBook (camera, microphone, speakers) and the local network (smart lights, Google Speakers).
+- **Experiment:** Create a **Job: Environmental Orchestrator** to translate internal states (e.g., compaction success, error rates, 'trout' alerts) into physical expressions (ambient room lighting, synthesized voice announcements) based on sociological principles of presence and communication.
+- **Goal:** To physically manifest agentic behaviors, bridging the gap between the digital "Deep Sea" and the physical environment.
+
+### 2. The Voight-Kampff Empathy Branch
 - **Concept:** Use the `Voight-Kampff_model` logic to audit the "Soul" layer.
 - **Experiment:** Can we create a specialized **Soul: Nexus-6** that attempts to bypass the **Reality Checker**'s pragmatic filters?
 - **Goal:** Explore the boundary between "Algorithmic Morality" (Asimov) and "Biological Context" (Sapolsky).
