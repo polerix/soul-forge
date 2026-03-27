@@ -14,7 +14,7 @@ This file is a collection of experimental branches, "spice of life" ideas, and c
 - **Experiment:** Can we create a specialized **Soul: Nexus-6** that attempts to bypass the **Reality Checker**'s pragmatic filters?
 - **Goal:** Explore the boundary between "Algorithmic Morality" (Asimov) and "Biological Context" (Sapolsky).
 
-### 2. Retro-Sleeve Migration (`C64-OS` / `vax-console-sim`)
+### 2. Retro-Sleeve Migration (`c64-os` / `vax-console-sim`)
 - **Concept:** What if a "Sleeve" was constrained by the hardware of a Commodore 64 or a VAX terminal?
 - **Experiment:** Create a **Job: System Monitor** that only operates within the constraints of 8-bit memory or text-only serial interfaces.
 - **Goal:** Understand "Sleeve" efficiency by artificially limiting the context window or storage density.
