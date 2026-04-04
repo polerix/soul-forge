@@ -1,0 +1,5 @@
+{
+  "_schema": "soul-forge-request-v1",
+  "_note": "Submitted sleeve requests. Consumed by forge_cron.py via Google Sheets queue.",
+  "pending": []
+}
